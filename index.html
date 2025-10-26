@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>中学共通テスト 一問一答</title>
+<style>
+body {
+  font-family: "Noto Sans JP", sans-serif;
+  background: #f8f9fa;
+  text-align: center;
+  padding: 2em;
+}
+h2 { margin-bottom: 1em; }
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1em;
+}
+.tab {
+  padding: 0.7em 1.5em;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  background: #e9ecef;
+  margin: 0 3px;
+  font-weight: bold;
+}
+.tab.active { background: #007bff; color: white; }
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 2em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin: auto;
+  max-width: 500px;
+}
+
+button {
+  padding: 0.6em 1.2em;
+  margin: 0.5em;
+  font-size: 1em;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.show { background: #007bff; color: white; }
+.next { background: #28a745; color: white; }
+.prev { background: #6c757d; color: white; }
+button:hover { opacity: 0.9; }
+
+#answer, #explain {
+  display: none;
+  margin-top: 1em;
+}
+#answer { color: #007bff; font-weight: bold; }
+#explain { color: #333; }
+
+#progress {
+  color: #555;
+  font-weight: bold;
+  margin-bottom: 1em;
+}
+</style>
+</head>
+<body>
+
+<h2>中学共通テスト 一問一答</h2>
+
+<div class="tabs">
+  <div id="tab-society" class="tab active" onclick="switchSubject('society')">社会</div>
+  <div id="tab-science" class="tab" onclick="switchSubject('science')">理科</div>
+</div>
+
+<div class="card">
+  <p id="subject-label">社会の問題</p>
+  <p id="progress">1 / 15</p>
+  <p id="question">問題を読み込み中...</p>
+  <p id="answer"></p>
+  <p id="explain"></p>
+  <div>
+    <button class="prev" onclick="prevQuestion()">戻る</button>
+    <button class="show" onclick="showAnswer()">答えを表示</button>
+    <button class="next" onclick="nextQuestion()">次の問題</button>
+  </div>
+</div>
+
+<script>
+const quizData = {
+  society: [
+    {q:"日本国憲法が施行された年は？",a:"1947年",e:"現行憲法の施行年。"},
+    {q:"三権分立の『司法』に当たる機関は？",a:"裁判所",e:"法律を最終判断する。"},
+    {q:"日本の都道府県はいくつ？",a:"47",e:"都1・道1・府2・県43。"},
+    {q:"憲法の三大原則は？",a:"国民主権・基本的人権・平和主義",e:"公民の最重要ポイント。"},
+    {q:"明治維新が起こった年は？",a:"1868年",e:"江戸幕府が終わり新政府誕生。"},
+    {q:"沖縄が返還された年は？",a:"1972年",e:"アメリカ統治から復帰。"},
+    {q:"世界で面積が最も大きい国は？",a:"ロシア",e:"ユーラシア北部を占める。"},
+    {q:"世界で人口が最も多い国は？",a:"中国",e:"約14億人。"},
+    {q:"第1次産業とは？",a:"農林水産業",e:"自然から直接生産する。"},
+    {q:"生産年齢人口の範囲は？",a:"15〜64歳",e:"労働の中心層。"},
+    {q:"雪が多い気候区は？",a:"日本海側気候",e:"冬の北西風の影響。"},
+    {q:"首都圏の4都県を構成する県は？",a:"神奈川県",e:"東京・埼玉・千葉・神奈川。"},
+    {q:"EU加盟国を1つ挙げよ。",a:"フランス",e:"ヨーロッパ連合の主要国。"},
+    {q:"産業構造の高度化とは？",a:"サービス業中心になること",e:"第3次産業が拡大。"},
+    {q:"再生可能エネルギーを1つ挙げよ。",a:"太陽光",e:"枯渇しない自然エネルギー。"},
+  ],
+  science: [
+    {q:"光が境界面で折れ曲がる現象は？",a:"屈折",e:"空気→水などで方向が変わる。"},
+    {q:"電圧＝電流×抵抗、この法則名は？",a:"オームの法則",e:"電気回路の基本。"},
+    {q:"運動している物体がもつエネルギーは？",a:"運動エネルギー",e:"½mv²で表す。"},
+    {q:"地震で最初にくる小さな揺れは？",a:"P波",e:"縦波で伝わるのが速い。"},
+    {q:"光合成で作られる物質は？",a:"デンプン",e:"二酸化炭素＋水＋光→O₂＋糖。"},
+    {q:"呼吸で使われる気体は？",a:"酸素",e:"エネルギーを取り出す反応。"},
+    {q:"DNAとは？",a:"デオキシリボ核酸",e:"遺伝情報の本体。"},
+    {q:"酸とアルカリを混ぜると起こる反応は？",a:"中和反応",e:"塩と水ができる。"},
+    {q:"地球が太陽の周りを回る運動は？",a:"公転",e:"1年に1回。季節変化の原因。"},
+    {q:"月が地球の影に入る現象は？",a:"月食",e:"満月のときに起こる。"},
+    {q:"太陽が月に隠される現象は？",a:"日食",e:"新月のときに起こる。"},
+    {q:"固体が液体になる変化は？",a:"融解",e:"氷が溶ける。"},
+    {q:"プレートを動かす力の一つは？",a:"マントルの対流",e:"地球内部の熱で起こる。"},
+    {q:"酸化とは？",a:"酸素と結びつく反応",e:"燃焼や錆など。"},
+    {q:"生産者→消費者→分解者の流れを何という？",a:"食物連鎖",e:"エネルギーの流れ。"},
+  ]
+};
+
+let currentSubject = 'society';
+let index = 0;
+
+function updateProgress() {
+  const total = quizData[currentSubject].length;
+  document.getElementById("progress").innerText = `${index + 1} / ${total}`;
+}
+
+function renderQuestion() {
+  const qz = quizData[currentSubject][index];
+  document.getElementById("question").innerText = qz.q;
+  document.getElementById("answer").innerText = "答え：" + qz.a;
+  document.getElementById("explain").innerText = qz.e;
+  document.getElementById("answer").style.display = "none";
+  document.getElementById("explain").style.display = "none";
+  document.getElementById("subject-label").innerText = 
+    currentSubject === 'society' ? "社会の問題" : "理科の問題";
+  updateProgress();
+}
+
+function showAnswer() {
+  document.getElementById("answer").style.display = "block";
+  document.getElementById("explain").style.display = "block";
+}
+
+function nextQuestion() {
+  const arr = quizData[currentSubject];
+  index = (index + 1) % arr.length;
+  renderQuestion();
+}
+
+function prevQuestion() {
+  const arr = quizData[currentSubject];
+  index = (index - 1 + arr.length) % arr.length;
+  renderQuestion();
+}
+
+function switchSubject(subject) {
+  currentSubject = subject;
+  index = 0;
+  document.getElementById("tab-society").classList.remove("active");
+  document.getElementById("tab-science").classList.remove("active");
+  document.getElementById("tab-" + subject).classList.add("active");
+  renderQuestion();
+}
+
+window.onload = renderQuestion;
+</script>
+</body>
+</html>
